@@ -1,8 +1,8 @@
 // ignore_for_file: prefer_const_constructors, deprecated_member_use, avoid_print, avoid_unnecessary_containers, sized_box_for_whitespace
 
-import 'package:app2/homepage.dart';
+import 'package:app2/list.dart';
 import 'package:app2/registrationpage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget {
@@ -18,7 +18,12 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+
+  late Map<String, dynamic> dataTOAdd;
+  // FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  CollectionReference collectionReference =
+      FirebaseFirestore.instance.collection(("user"));
+
   bool a = true;
   @override
   Widget build(BuildContext context) {
@@ -52,6 +57,7 @@ class _LoginPageState extends State<LoginPage> {
                 Container(
                   padding: EdgeInsets.all(10),
                   child: TextFormField(
+                    cursorColor: Colors.brown.shade300,
                     style: TextStyle(color: Colors.brown.shade300),
                     controller: nameController,
                     validator: (value) {
@@ -61,18 +67,25 @@ class _LoginPageState extends State<LoginPage> {
                       }
                     },
                     decoration: InputDecoration(
-                      prefixIcon: Icon(
-                        Icons.mail,
-                        color: Colors.brown,
-                      ),
-                      border: OutlineInputBorder(),
-                      labelText: 'Email',
-                    ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Colors.brown.shade300, width: 3),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.mail,
+                          color: Colors.brown,
+                        ),
+                        border: OutlineInputBorder(),
+                        labelText: 'Email',
+                        labelStyle: TextStyle(
+                            color: Colors.brown.shade300,
+                            fontWeight: FontWeight.bold)),
                   ),
                 ),
                 Container(
                   padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
                   child: TextFormField(
+                    cursorColor: Colors.brown.shade300,
                     style: TextStyle(color: Colors.brown.shade300),
                     obscureText: !a,
                     controller: passwordController,
@@ -90,31 +103,37 @@ class _LoginPageState extends State<LoginPage> {
                       }
                     },
                     decoration: InputDecoration(
-                      prefixIcon: Icon(
-                        Icons.lock,
-                        color: Colors.brown,
-                      ),
-                      suffixIcon: IconButton(
-                        icon: a
-                            ? Icon(
-                                Icons.visibility_off,
-                                color: Colors.brown,
-                                size: 20,
-                              )
-                            : Icon(
-                                Icons.remove_red_eye,
-                                color: Colors.brown,
-                                size: 20,
-                              ),
-                        onPressed: () {
-                          setState(() {
-                            a = !a;
-                          });
-                        },
-                      ),
-                      border: OutlineInputBorder(),
-                      labelText: 'Password',
-                    ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Colors.brown.shade300, width: 3),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.lock,
+                          color: Colors.brown,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: a
+                              ? Icon(
+                                  Icons.visibility_off,
+                                  color: Colors.brown,
+                                  size: 20,
+                                )
+                              : Icon(
+                                  Icons.remove_red_eye,
+                                  color: Colors.brown,
+                                  size: 20,
+                                ),
+                          onPressed: () {
+                            setState(() {
+                              a = !a;
+                            });
+                          },
+                        ),
+                        border: OutlineInputBorder(),
+                        labelText: 'Password',
+                        labelStyle: TextStyle(
+                            color: Colors.brown.shade300,
+                            fontWeight: FontWeight.bold)),
                   ),
                 ),
                 FlatButton(
@@ -129,42 +148,62 @@ class _LoginPageState extends State<LoginPage> {
                     width: MediaQuery.of(context).size.width * 0.7,
                     // padding: EdgeInsets.symmetric(horizontal: 50),
                     child: RaisedButton(
-                      textColor: Colors.brown.shade100,
-                      color: Colors.brown.shade400,
-                      child: Text('Login'),
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
+                        textColor: Colors.brown.shade100,
+                        color: Colors.brown.shade400,
+                        child: Text('Login'),
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            bool isAuthorized = await FirebaseFirestore.instance
+                                .collection("user")
+                                .snapshots()
+                                .any((elements) => elements.docs
+                                    .where((element) =>
+                                        element['email'] ==
+                                            nameController.text &&
+                                        element['password'] ==
+                                            passwordController.text)
+                                    .isNotEmpty)
+                                .timeout(const Duration(seconds: 10));
+                            if (isAuthorized == true) {
+                              Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (builder) => ListPage()),
+                                  (route) => false);
+                            }
+                          }
+
                           // If the form is valid, display a snackbar. In the real world,
                           // you'd often call a server or save the information in a database.
                           // ScaffoldMessenger.of(context).showSnackBar(
                           //   const SnackBar(content: Text('Processing Data')),
                           // );
-                          try {
-                            UserCredential luserCredential =
-                                await firebaseAuth.signInWithEmailAndPassword(
-                                    email: nameController.text,
-                                    password: passwordController.text);
+                          //   try {
+                          //     UserCredential luserCredential =
+                          //         await firebaseAuth.signInWithEmailAndPassword(
+                          //             email: nameController.text,
+                          //             password: passwordController.text);
 
-                            print(
-                                "login user uid is : ${luserCredential.user?.uid}");
+                          //     print(
+                          //         "login user uid is : ${luserCredential.user?.uid}");
 
-                            Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (builder) => HomePage()),
-                                (route) => false);
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(e.toString()),
-                              duration: Duration(milliseconds: 1500),
-                            ));
-                            print(e);
-                          }
+                          //     Navigator.pushAndRemoveUntil(
+                          //         context,
+                          //         MaterialPageRoute(
+                          //             builder: (builder) => HomePage()),
+                          //         (route) => false);
+                          //   } catch (e) {
+                          //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          //       content: Text(e.toString()),
+                          //       duration: Duration(milliseconds: 1500),
+                          //     ));
+                          //     print(e);
+                          //   }
                         }
-                        print(nameController.text);
-                        print(passwordController.text);
-                      },
-                    )),
+                        // print(nameController.text);
+                        // print(passwordController.text);
+
+                        )),
                 Container(
                     child: Row(
                   children: <Widget>[
