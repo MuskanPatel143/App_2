@@ -39,10 +39,14 @@ class _ListPageState extends State<ListPage> {
           stream: firestore
               .collection("posts")
               // .where("message", isGreaterThanOrEqualTo: 1)
-              .snapshots(),
+              .snapshots()
+              .asBroadcastStream(),
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (!snapshot.hasData) return new Text("There is no expense");
+            if (!snapshot.hasData)
+              return Center(
+                child: CircularProgressIndicator(),
+              );
             return new ListView(children: getExpenseItems(snapshot));
           }),
       floatingActionButton: FloatingActionButton(

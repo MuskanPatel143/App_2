@@ -87,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: TextFormField(
                     cursorColor: Colors.brown.shade300,
                     style: TextStyle(color: Colors.brown.shade300),
-                    obscureText: !a,
+                    obscureText: a,
                     controller: passwordController,
                     validator: (value) {
                       RegExp regex = RegExp(

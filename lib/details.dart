@@ -4,7 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class DetailPage extends StatefulWidget {
-  const DetailPage({Key? key}) : super(key: key);
+  DetailPage({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _DetailPageState createState() => _DetailPageState();
@@ -25,7 +27,7 @@ class _DetailPageState extends State<DetailPage> {
         body: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection("posts")
-                // .where("message", isGreaterThanOrEqualTo: 1)
+                // .where("${docss["message"]}", isGreaterThanOrEqualTo: 1)
                 .snapshots(),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -37,8 +39,16 @@ class _DetailPageState extends State<DetailPage> {
                       snapshot.data!.docs[index].data() as Map<String, dynamic>;
                   print("$docss");
                   // return getExpenseItems(snapshot);
-                  return ListTile(
-                    title: Text("${docss["message"]}"),
+                  return Padding(
+                    padding:
+                        const EdgeInsets.only(top: 10, left: 10, right: 10),
+                    child: ListTile(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15)),
+                      tileColor: Colors.brown.shade200,
+                      title: Text(docss['message']),
+                      // title: Text(docss['title$index.message']),
+                    ),
                   );
                 },
               );
